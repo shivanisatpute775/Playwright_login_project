@@ -1,0 +1,156 @@
+{
+  "feature": "EventHub Login",
+  "url": "https://eventhub.rahulshettyacademy.com/login",
+  "description": "Verifies the EventHub login flow. The login page at /login presents a single 'Sign in to EventHub' card with an Email field (placeholder 'you@email.com'), a Password field (placeholder '••••••'), and a 'Sign In' button. A valid login (POST to /api/auth/login returns 200) redirects the user to the home page '/' which renders the navigation bar with the user's email and a 'Logout' button. A failed login keeps the user on /login; the API returns HTTP 400 for invalid credentials and the form offers no inline success state.",
+  "credentials": {
+    "validEmail": "manish123@gmail.com",
+    "validPassword": "Manish9@@"
+  },
+  "testData": {
+    "wrongPassword": "WrongPass@999",
+    "unregisteredEmail": "notregistered@example.com",
+    "emptyEmail": "",
+    "emptyPassword": "",
+    "sqlInjectionEmail": "' OR '1'='1",
+    "sqlInjectionPassword": "' OR '1'='1"
+  },
+  "testCases": [
+    {
+      "id": "TC_001",
+      "title": "Valid credentials sign the user in and land on the home page",
+      "type": "positive",
+      "priority": "high",
+      "preconditions": [
+        "User is on https://eventhub.rahulshettyacademy.com/login",
+        "Browser is at default desktop viewport",
+        "No active session for manish123@gmail.com"
+      ],
+      "testData": {
+        "email": "manish123@gmail.com",
+        "password": "Manish9@@"
+      },
+      "steps": [
+        "Step 1: Navigate to https://eventhub.rahulshettyacademy.com/login",
+        "Step 2: Enter 'manish123@gmail.com' in the Email textbox (placeholder 'you@email.com')",
+        "Step 3: Enter 'Manish9@@' in the Password textbox (placeholder '••••••')",
+        "Step 4: Click the 'Sign In' button",
+        "Step 5: Wait for the page to navigate away from /login"
+      ],
+      "expectedResult": "The browser navigates to https://eventhub.rahulshettyacademy.com/ (home page), the top navigation shows the user's email 'manish123@gmail.com' and a 'Logout' button, and the 'Featured Events' section is visible.",
+      "automationHints": {
+        "selectors": {
+          "emailInput": "getByPlaceholder('you@email.com')",
+          "passwordInput": "getByPlaceholder('••••••')",
+          "signInButton": "getByRole('button', { name: 'Sign In' })",
+          "userEmailInNav": "getByLabel('manish123@gmail.com')",
+          "logoutButton": "getByRole('button', { name: 'Logout' })",
+          "featuredEventsHeading": "getByRole('heading', { name: 'Featured Events' })"
+        },
+        "pageObject": "TestPage",
+        "locatorFile": "src/tests/locators/test.locator.ts",
+        "locatorProperties": ["userEmailInput", "passwordInput", "signInButton"]
+      }
+    },
+    {
+      "id": "TC_002",
+      "title": "Invalid password keeps the user on /login with no successful navigation",
+      "type": "negative",
+      "priority": "high",
+      "preconditions": [
+        "User is on https://eventhub.rahulshettyacademy.com/login",
+        "No active session"
+      ],
+      "testData": {
+        "email": "manish123@gmail.com",
+        "password": "WrongPass@999"
+      },
+      "steps": [
+        "Step 1: Navigate to https://eventhub.rahulshettyacademy.com/login",
+        "Step 2: Enter 'manish123@gmail.com' in the Email textbox",
+        "Step 3: Enter 'WrongPass@999' in the Password textbox",
+        "Step 4: Click the 'Sign In' button",
+        "Step 5: Wait briefly for the network response"
+      ],
+      "expectedResult": "The browser stays on https://eventhub.rahulshettyacademy.com/login (URL is unchanged), the POST to /api/auth/login returns HTTP 400, and the home page is NOT loaded (no 'Featured Events' heading and no 'Logout' button are visible).",
+      "automationHints": {
+        "selectors": {
+          "emailInput": "getByPlaceholder('you@email.com')",
+          "passwordInput": "getByPlaceholder('••••••')",
+          "signInButton": "getByRole('button', { name: 'Sign In' })"
+        },
+        "pageObject": "TestPage",
+        "locatorFile": "src/tests/locators/test.locator.ts",
+        "locatorProperties": ["userEmailInput", "passwordInput", "signInButton"],
+        "networkExpectation": "POST https://api.eventhub.rahulshettyacademy.com/api/auth/login -> 400"
+      }
+    },
+    {
+      "id": "TC_003",
+      "title": "Empty email and empty password block submission (boundary / required-field case)",
+      "type": "boundary",
+      "priority": "high",
+      "preconditions": [
+        "User is on https://eventhub.rahulshettyacademy.com/login",
+        "No active session"
+      ],
+      "testData": {
+        "email": "",
+        "password": ""
+      },
+      "steps": [
+        "Step 1: Navigate to https://eventhub.rahulshettyacademy.com/login",
+        "Step 2: Leave the Email textbox empty (do not type anything)",
+        "Step 3: Leave the Password textbox empty (do not type anything)",
+        "Step 4: Click the 'Sign In' button"
+      ],
+      "expectedResult": "The browser stays on https://eventhub.rahulshettyacademy.com/login. The Email field is flagged as required by the browser (HTML5 'Please fill out this field' validation message or 'valueMissing' state), no POST request to /api/auth/login is sent, and the user is not redirected to the home page.",
+      "automationHints": {
+        "selectors": {
+          "emailInput": "getByPlaceholder('you@email.com')",
+          "passwordInput": "getByPlaceholder('••••••')",
+          "signInButton": "getByRole('button', { name: 'Sign In' })"
+        },
+        "pageObject": "TestPage",
+        "locatorFile": "src/tests/locators/test.locator.ts",
+        "locatorProperties": ["userEmailInput", "passwordInput", "signInButton"],
+        "assertions": [
+          "expect(page).toHaveURL(/\\/login$/)",
+          "expect(apiLoginRequest).toHaveCount(0)"
+        ]
+      }
+    },
+    {
+      "id": "TC_004",
+      "title": "SQL-injection-style input in Email and Password does not bypass authentication",
+      "type": "edge",
+      "priority": "medium",
+      "preconditions": [
+        "User is on https://eventhub.rahulshettyacademy.com/login",
+        "No active session"
+      ],
+      "testData": {
+        "email": "' OR '1'='1",
+        "password": "' OR '1'='1"
+      },
+      "steps": [
+        "Step 1: Navigate to https://eventhub.rahulshettyacademy.com/login",
+        "Step 2: Enter '' OR ''1''=''1' in the Email textbox (literal string: single-quote, space, OR, space, single-quote, 1, single-quote, equals, single-quote, 1)",
+        "Step 3: Enter '' OR ''1''=''1' in the Password textbox (same literal string)",
+        "Step 4: Click the 'Sign In' button",
+        "Step 5: Wait briefly for the network response"
+      ],
+      "expectedResult": "The browser stays on https://eventhub.rahulshettyacademy.com/login. The login API responds with HTTP 400 (the same way as a normal failed login), the home page is NOT loaded, and no 'Logout' button or user email is shown in the navigation.",
+      "automationHints": {
+        "selectors": {
+          "emailInput": "getByPlaceholder('you@email.com')",
+          "passwordInput": "getByPlaceholder('••••••')",
+          "signInButton": "getByRole('button', { name: 'Sign In' })"
+        },
+        "pageObject": "TestPage",
+        "locatorFile": "src/tests/locators/test.locator.ts",
+        "locatorProperties": ["userEmailInput", "passwordInput", "signInButton"],
+        "networkExpectation": "POST https://api.eventhub.rahulshettyacademy.com/api/auth/login -> 400"
+      }
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+- [Project test layout](project_test_layout.md) — Cucumber + Playwright + TS layout: where features/steps/POM go, the single-PageManager facade, demo creds reuse via `Given user login into the app`.
+- [Bookings empty-state strategy](bookings_empty_state_strategy.md) — TC-BOOK-003 should cancel-all-then-verify-empty rather than introduce a second test user or silently skip.
+- [No bash tool acknowledgement](no_bash_tool_acknowledgement.md) — this env has no Bash tool; report blockers honestly instead of fabricating run output, and use mcp__ide__getDiagnostics for static TS checks.
+- [Destructive scenario skip pattern](destructive_scenario_skip_pattern.md) — for cancel-style scenarios, gate with a `Then ... this.skip()` step so re-runs pass; declare `skip(): never` on CustomWorld.
+- [cucumber-js 13 pending pattern](cucumber_js_13_pending_pattern.md) — `this.pending()` is gone in v13; resolve with `return 'pending'` to mark a step/scenario as PENDING.

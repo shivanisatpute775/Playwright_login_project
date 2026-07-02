@@ -1,0 +1,488 @@
+{
+  "application": "EventHub",
+  "baseUrl": "https://eventhub.rahulshettyacademy.com/",
+  "credentials": {
+    "email": "manish123@gmail.com",
+    "password": "Manish9@@"
+  },
+  "testData": {
+    "invalidEmailFormat": "not-an-email",
+    "wrongPassword": "WrongPass@999",
+    "unregisteredEmail": "notregistered@example.com",
+    "emptyEmail": "",
+    "emptyPassword": "",
+    "sqlInjectionEmail": "' OR '1'='1",
+    "xssEmail": "<script>alert(1)</script>",
+    "whitespaceEmail": "   ",
+    "longEmail": "aaaaa@example.com",
+    "longPassword": "Abc@1234bc890",
+    "validEventTitle": "QA Automation Summit 2026",
+    "boundaryEventTitle": "Q",
+    "longEventTitle": "AAAAAAAAAAA",
+    "eventSpecialChars": "<script>alert('xss')</script> & \"quotes\" /\\test",
+    "validCity": "Mumbai",
+    "validVenue": "Grand Hyatt",
+    "validDate": "2026-12-15T10:30",
+    "pastDate": "2020-01-01T09:00",
+    "validPrice": "1500",
+    "negativePrice": "-100",
+    "zeroPrice": "0",
+    "decimalPrice": "99.99",
+    "validSeats": "100",
+    "zeroSeats": "0",
+    "negativeSeats": "-5"
+  },
+  "features": [
+    {
+      "feature": "Login",
+      "description": "The EventHub login page presents a centered email and password form with a 'Sign In' button, plus a 'Register' link for new users. After successful authentication the user lands on the authenticated dashboard (Events tab visible). Validation feedback for failed attempts is rendered in an .error-message region.",
+      "testCases": [
+        {
+          "id": "LOGIN_001",
+          "title": "Valid login with correct credentials redirects to dashboard",
+          "type": "positive",
+          "priority": "high",
+          "preconditions": [
+            "User is on https://eventhub.rahulshettyacademy.com/login",
+            "Account manish123@gmail.com / Manish9@@ exists and is active",
+            "Browser is at default zoom with cookies cleared"
+          ],
+          "steps": [
+            "1. Navigate to https://eventhub.rahulshettyacademy.com/ — the login page renders with 'Sign in to EventHub' heading.",
+            "2. Enter 'manish123@gmail.com' in the Email field (placeholder 'you@email.com').",
+            "3. Enter 'Manish9@@' in the Password field (placeholder '••••••').",
+            "4. Click the 'Sign In' button.",
+            "5. Wait for the network to settle (page transitions away from /login)."
+          ],
+          "expectedResult": "User is authenticated, the URL changes away from /login, and the top navigation exposes the Events tab (#nav-events) and My Bookings link, confirming the authenticated dashboard is rendered.",
+          "testData": {
+            "email": "manish123@gmail.com",
+            "password": "Manish9@@"
+          }
+        },
+        {
+          "id": "LOGIN_002",
+          "title": "Login with valid email but wrong password shows error and stays on /login",
+          "type": "negative",
+          "priority": "high",
+          "preconditions": [
+            "User is on https://eventhub.rahulshettyacademy.com/login",
+            "Browser is at default zoom with cookies cleared"
+          ],
+          "steps": [
+            "1. Navigate to https://eventhub.rahulshettyacademy.com/login.",
+            "2. Enter 'manish123@gmail.com' in the Email field.",
+            "3. Enter 'WrongPass@999' in the Password field.",
+            "4. Click the 'Sign In' button.",
+            "5. Wait for the error region (.error-message) to render or for the network call to settle."
+          ],
+          "expectedResult": "An error message is displayed (in the .error-message region or as a toast/alert indicating invalid credentials), the URL remains on /login, and the Password field is cleared or highlighted as invalid. The user is not authenticated.",
+          "testData": {
+            "email": "manish123@gmail.com",
+            "password": "WrongPass@999"
+          }
+        },
+        {
+          "id": "LOGIN_003",
+          "title": "Login with both fields empty shows validation and does not submit",
+          "type": "boundary",
+          "priority": "high",
+          "preconditions": [
+            "User is on https://eventhub.rahulshettyacademy.com/login",
+            "Browser is at default zoom with cookies cleared"
+          ],
+          "steps": [
+            "1. Navigate to https://eventhub.rahulshettyacademy.com/login.",
+            "2. Leave the Email field empty.",
+            "3. Leave the Password field empty.",
+            "4. Click the 'Sign In' button (do not press Enter).",
+            "5. Observe whether a network request is fired and whether the inputs become invalid."
+          ],
+          "expectedResult": "The form does not submit; both inputs are flagged with native HTML5 'Please fill out this field' validation (or a similar inline message). The URL remains on /login. No authentication API call is made.",
+          "testData": {
+            "email": "",
+            "password": ""
+          }
+        },
+        {
+          "id": "LOGIN_004",
+          "title": "Login with malformed email format is rejected client-side",
+          "type": "edge",
+          "priority": "medium",
+          "preconditions": [
+            "User is on https://eventhub.rahulshettyacademy.com/login",
+            "Browser is at default zoom with cookies cleared"
+          ],
+          "steps": [
+            "1. Navigate to https://eventhub.rahulshettyacademy.com/login.",
+            "2. Enter 'not-an-email' in the Email field (no '@' symbol, no domain).",
+            "3. Enter 'Manish9@@' in the Password field.",
+            "4. Click the 'Sign In' button.",
+            "5. Observe whether the form submits and whether a network request is made."
+          ],
+          "expectedResult": "The Email input fails HTML5 type='email' validation (browser-native tooltip like 'Please include an '@' in the email address'). The form is not submitted, the URL remains on /login, and no authentication request is sent.",
+          "testData": {
+            "email": "not-an-email",
+            "password": "Manish9@@"
+          }
+        },
+        {
+          "id": "LOGIN_005",
+          "title": "Login with SQL-injection-style input is safely rejected without server error",
+          "type": "edge",
+          "priority": "medium",
+          "preconditions": [
+            "User is on https://eventhub.rahulshettyacademy.com/login",
+            "Browser is at default zoom with cookies cleared",
+            "Network tab open to inspect responses"
+          ],
+          "steps": [
+            "1. Navigate to https://eventhub.rahulshettyacademy.com/login.",
+            "2. Enter \"' OR '1'='1\" in the Email field.",
+            "3. Enter 'anything' in the Password field.",
+            "4. Click the 'Sign In' button.",
+            "5. Observe the response (no 500 error, no unexpected redirect)."
+          ],
+          "expectedResult": "The application treats the input as a literal string. An 'invalid credentials' / error message is displayed, the URL remains on /login, and no SQL error or server 500 is returned. The page does not authenticate the user.",
+          "testData": {
+            "email": "' OR '1'='1",
+            "password": "anything"
+          }
+        },
+        {
+          "id": "LOGIN_006",
+          "title": "Login with very long email string (255+ chars) does not break the form",
+          "type": "boundary",
+          "priority": "low",
+          "preconditions": [
+            "User is on https://eventhub.rahulshettyacademy.com/login",
+            "Browser is at default zoom with cookies cleared"
+          ],
+          "steps": [
+            "1. Navigate to https://eventhub.rahulshettyacademy.com/login.",
+            "2. Paste a 20+ character local-part string followed by '@example.com' into the Email field.",
+            "3. Enter 'Manish9@@' in the Password field.",
+            "4. Click the 'Sign In' button.",
+            "5. Observe whether the layout breaks, the field truncates, or the request times out."
+          ],
+          "expectedResult": "The page does not break visually. The input is either truncated by maxlength, rejected by email validation, or submitted and answered with a generic 'invalid credentials' error. URL stays on /login. The user is not authenticated.",
+          "testData": {
+            "email": "<a 20+ char local-part>@example.com",
+            "password": "Manish9@@"
+          }
+        }
+      ]
+    },
+    {
+      "feature": "Events Listing",
+      "description": "After login the Events tab shows a grid of <article> event cards with category badge, optional 'Featured' badge, title link, date, venue (Venue, City), price ($), and seat count, plus a 'Book Now' button per card.",
+      "testCases": [
+        {
+          "id": "EVT_001",
+          "title": "Events tab renders a grid of event cards with required fields",
+          "type": "positive",
+          "priority": "high",
+          "preconditions": [
+            "User is logged in with manish123@gmail.com / Manish9@@",
+            "User is on the authenticated dashboard",
+            "At least one event exists in the listing"
+          ],
+          "steps": [
+            "1. From the authenticated dashboard, click the 'Events' nav item (#nav-events).",
+            "2. Wait for the event list grid to render.",
+            "3. Verify at least one event card is visible (main article element).",
+            "4. For the first card, confirm presence of: category badge, title (h3), date, venue line, price (e.g. '$123'), and seats text."
+          ],
+          "expectedResult": "The Events tab shows a list of event cards. Each visible card has a category badge, an h3 title, a date in 'Ddd, DD Mmm' format, a 'Venue, City' line, a price string, a seats string, and a 'Book Now' button.",
+          "testData": {}
+        },
+        {
+          "id": "EVT_002",
+          "title": "Clicking the Events tab a second time does not duplicate cards",
+          "type": "boundary",
+          "priority": "low",
+          "preconditions": [
+            "User is logged in with manish123@gmail.com / Manish9@@",
+            "User is on the Events tab with cards visible"
+          ],
+          "steps": [
+            "1. Note the count of event cards (main article) currently rendered.",
+            "2. Click the 'Events' tab again.",
+            "3. Re-count the event cards."
+          ],
+          "expectedResult": "The card count is identical to the first count (no duplication). The grid does not append a second copy of the same cards on re-render.",
+          "testData": {}
+        }
+      ]
+    },
+    {
+      "feature": "Add New Event",
+      "description": "From the Events tab the 'Add New Event' button opens a form with: Event Title, Description, Category (dropdown), City, Venue, Date & Time, Price, Total Seats, and an 'Add Event' submit button (#add-event-btn). On success an 'Event created!' toast appears and the new event shows on the listing.",
+      "testCases": [
+        {
+          "id": "EVT_003",
+          "title": "Submit Add Event form with valid data and confirm toast + listing",
+          "type": "positive",
+          "priority": "high",
+          "preconditions": [
+            "User is logged in with manish123@gmail.com / Manish9@@",
+            "User is on the Events tab",
+            "The 'Add New Event' button is visible"
+          ],
+          "steps": [
+            "1. From the Events tab, click the 'Add New Event' button to open the Add Event form.",
+            "2. Enter 'QA Automation Summit 2026' in the Event Title field (#event-title-input).",
+            "3. Enter 'A full-day hands-on workshop on Playwright and Cucumber.' in the Description field.",
+            "4. In the Category dropdown (#category), select 'Conference' (or any non-default option).",
+            "5. Enter 'Mumbai' in the City field (#city).",
+            "6. Enter 'Grand Hyatt' in the Venue field (#venue).",
+            "7. In the Date & Time field (#event-date-&-time), enter '2026-12-15T10:30'.",
+            "8. Enter '1500' in the Price field (placeholder '0.00').",
+            "9. Enter '100' in the Total Seats field (#total-seats).",
+            "10. Click the 'Add Event' button (#add-event-btn).",
+            "11. Wait for the success toast and the listing to refresh."
+          ],
+          "expectedResult": "An 'Event created!' success toast appears, the form closes (or resets), and a new card titled 'QA Automation Summit 2026' is visible on the Events listing with category 'Conference', venue 'Grand Hyatt, Mumbai', date, price '$1500', and '100 seats'.",
+          "testData": {
+            "title": "QA Automation Summit 2026",
+            "description": "A full-day hands-on workshop on Playwright and Cucumber.",
+            "category": "Conference",
+            "city": "Mumbai",
+            "venue": "Grand Hyatt",
+            "dateTime": "2026-12-15T10:30",
+            "price": "1500",
+            "seats": "100"
+          }
+        },
+        {
+          "id": "EVT_004",
+          "title": "Submit Add Event form with all required fields empty triggers inline validation",
+          "type": "negative",
+          "priority": "high",
+          "preconditions": [
+            "User is logged in with manish123@gmail.com / Manish9@@",
+            "User is on the Events tab",
+            "The Add Event form has been opened"
+          ],
+          "steps": [
+            "1. From the Events tab, click 'Add New Event' to open the form.",
+            "2. Leave Event Title, Category, City, Venue, Date & Time, Price, and Total Seats all empty.",
+            "3. Click the 'Add Event' button (#add-event-btn).",
+            "4. Wait briefly and inspect each field for an inline error."
+          ],
+          "expectedResult": "The form does not submit. At least the required fields (Title, Category, City, Venue, Date, Price, Seats) display an inline error such as 'Required' or 'This field is required'. The 'Event created!' toast does not appear and no new event is added to the listing.",
+          "testData": {
+            "title": "",
+            "category": "",
+            "city": "",
+            "venue": "",
+            "dateTime": "",
+            "price": "",
+            "seats": ""
+          }
+        },
+        {
+          "id": "EVT_005",
+          "title": "Price = 0 boundary value is accepted (free event) or rejected with clear message",
+          "type": "boundary",
+          "priority": "medium",
+          "preconditions": [
+            "User is logged in with manish123@gmail.com / Manish9@@",
+            "User is on the Events tab",
+            "The Add Event form has been opened"
+          ],
+          "steps": [
+            "1. From the Events tab, click 'Add New Event' to open the form.",
+            "2. Fill all required fields with valid data except Price.",
+            "3. Enter '0' in the Price field (placeholder '0.00').",
+            "4. Click 'Add Event'."
+          ],
+          "expectedResult": "Either (a) the form accepts 0 and shows the new event priced at '$0' on the listing, or (b) the Price field shows an inline error such as 'Price must be greater than 0'. In either case the system gives a clear, non-crashing response. URL does not change unexpectedly; the 'Event created!' toast only appears if the value was accepted.",
+          "testData": {
+            "title": "Free Community Meetup",
+            "price": "0",
+            "seats": "50"
+          }
+        },
+        {
+          "id": "EVT_006",
+          "title": "Negative or non-numeric Price and Seats are rejected by the form",
+          "type": "edge",
+          "priority": "medium",
+          "preconditions": [
+            "User is logged in with manish123@gmail.com / Manish9@@",
+            "User is on the Events tab",
+            "The Add Event form has been opened"
+          ],
+          "steps": [
+            "1. From the Events tab, click 'Add New Event' to open the form.",
+            "2. Fill all required text fields with valid data.",
+            "3. Enter '-100' in the Price field.",
+            "4. Enter '-5' in the Total Seats field.",
+            "5. Click 'Add Event'.",
+            "6. If submission succeeds, repeat with 'abc' in Price and 'xyz' in Seats."
+          ],
+          "expectedResult": "Negative values for Price and Seats do not produce a successful event. Either the field rejects the input client-side (no minus accepted, or numeric validation tooltip appears) or the form shows an inline error such as 'Must be a positive number'. The 'Event created!' toast does not appear for negative inputs.",
+          "testData": {
+            "price": "-100",
+            "seats": "-5"
+          }
+        },
+        {
+          "id": "EVT_007",
+          "title": "Past date in Date & Time is rejected or clearly flagged",
+          "type": "edge",
+          "priority": "medium",
+          "preconditions": [
+            "User is logged in with manish123@gmail.com / Manish9@@",
+            "User is on the Events tab",
+            "The Add Event form has been opened"
+          ],
+          "steps": [
+            "1. From the Events tab, click 'Add New Event' to open the form.",
+            "2. Fill all required text fields with valid data.",
+            "3. In the Date & Time field, enter '2020-01-01T09:00' (a date in the past).",
+            "4. Click 'Add Event'."
+          ],
+          "expectedResult": "The form either rejects the past date with an inline message such as 'Date must be in the future' or shows the HTML5 min-attribute warning. The event is not created and the 'Event created!' toast does not appear.",
+          "testData": {
+            "dateTime": "2020-01-01T09:00"
+          }
+        },
+        {
+          "id": "EVT_008",
+          "title": "Event Title with HTML/script characters is stored safely and rendered as text",
+          "type": "edge",
+          "priority": "medium",
+          "preconditions": [
+            "User is logged in with manish123@gmail.com / Manish9@@",
+            "User is on the Events tab",
+            "The Add Event form has been opened"
+          ],
+          "steps": [
+            "1. From the Events tab, click 'Add New Event' to open the form.",
+            "2. In the Event Title field, enter: <script>alert('xss')</script> & \"quotes\" /\\test.",
+            "3. Fill the remaining required fields with valid data.",
+            "4. Click 'Add Event'.",
+            "5. When the new card appears on the listing, hover over / inspect the title text."
+          ],
+          "expectedResult": "No JavaScript executes (no alert dialog). The title is rendered as literal text on the listing card with the angle brackets, ampersand, quotes, and backslash visible. The 'Event created!' toast appears and the page remains functional.",
+          "testData": {
+            "title": "<script>alert('xss')</script> & \"quotes\" /\\test"
+          }
+        },
+        {
+          "id": "EVT_009",
+          "title": "Very long Event Title (200+ chars) does not break the listing card layout",
+          "type": "boundary",
+          "priority": "low",
+          "preconditions": [
+            "User is logged in with manish123@gmail.com / Manish9@@",
+            "User is on the Events tab",
+            "The Add Event form has been opened"
+          ],
+          "steps": [
+            "1. From the Events tab, click 'Add New Event' to open the form.",
+            "2. Paste a 200+ character string of 'A's into the Event Title field.",
+            "3. Fill the remaining required fields with valid data.",
+            "4. Click 'Add Event'.",
+            "5. Inspect the resulting card on the listing."
+          ],
+          "expectedResult": "Either the form truncates the title to a sane maximum (e.g. 100 chars) and creates the event with the truncated title, or it accepts the long title and the card wraps text within its container without overflowing horizontally. The page layout on the Events tab is not broken; the 'Event created!' toast appears.",
+          "testData": {
+            "title": "<200+ character string of A's>"
+          }
+        }
+      ]
+    },
+    {
+      "feature": "My Bookings",
+      "description": "The 'My Bookings' section (linked via #nav-bookings) lists the user's booking cards, each showing event name, date, venue, seats, price, and a status badge (Confirmed / Cancelled). A 'Cancel Booking' button on a confirmed card opens a confirmation modal; cancelling shows a success toast and updates the status badge. When the user has no bookings, an empty state with heading, subtext, and a 'Browse Events' CTA is shown.",
+      "testCases": [
+        {
+          "id": "BOOK_001",
+          "title": "My Bookings page renders heading and at least one Confirmed booking card",
+          "type": "positive",
+          "priority": "high",
+          "preconditions": [
+            "User is logged in with manish123@gmail.com / Manish9@@",
+            "The account has at least one Confirmed booking in its history"
+          ],
+          "steps": [
+            "1. From the authenticated dashboard, click the 'My Bookings' nav link (#nav-bookings or the link with href '/bookings').",
+            "2. Wait for the bookings list to render.",
+            "3. Verify the page heading reads 'My Bookings'.",
+            "4. Verify at least one booking card is visible.",
+            "5. For the first card confirm: event name, date, venue, seats, price, and a 'Confirmed' status badge are all present."
+          ],
+          "expectedResult": "The My Bookings page renders with the heading 'My Bookings', and the first booking card displays all expected fields plus a 'Confirmed' status badge. The page does not show the empty state.",
+          "testData": {}
+        },
+        {
+          "id": "BOOK_002",
+          "title": "Cancelling a confirmed booking opens modal, confirms, and shows success toast",
+          "type": "positive",
+          "priority": "high",
+          "preconditions": [
+            "User is logged in with manish123@gmail.com / Manish9@@",
+            "User is on the My Bookings page",
+            "At least one Confirmed booking card is present",
+            "The first booking has a 'Cancel' / 'Cancel Booking' button"
+          ],
+          "steps": [
+            "1. On My Bookings, locate the first Confirmed booking card.",
+            "2. Click the 'Cancel' (or 'Cancel Booking') button on that card.",
+            "3. Confirm a confirmation modal appears with a 'Keep Booking' (or 'Close') button and a 'Confirm Cancel' (or 'Yes, Cancel') button.",
+            "4. Click 'Confirm Cancel'.",
+            "5. Wait for the modal to close and for a success toast to render."
+          ],
+          "expectedResult": "A confirmation modal opens; clicking 'Confirm Cancel' dismisses the modal, shows a success toast containing the word 'cancel' (e.g. 'Booking cancelled'), and the affected card's status badge updates to 'Cancelled'. The booking is no longer 'Confirmed' on the listing.",
+          "testData": {}
+        },
+        {
+          "id": "BOOK_003",
+          "title": "My Bookings empty state shows illustration, heading, subtext, and Browse Events CTA",
+          "type": "boundary",
+          "priority": "medium",
+          "preconditions": [
+            "User is logged in with an account that has zero bookings in its history (or the test uses a freshly registered account)",
+            "User is on the My Bookings page"
+          ],
+          "steps": [
+            "1. From the authenticated dashboard, navigate to 'My Bookings'.",
+            "2. Observe the page content (no booking cards rendered).",
+            "3. Verify an illustration element, a heading such as 'No bookings yet', a subtext line, and a 'Browse Events' (or 'Explore Events') call-to-action button or link are present.",
+            "4. Click the 'Browse Events' CTA."
+          ],
+          "expectedResult": "The empty state renders with the illustration, the heading, the subtext, and the CTA. Clicking the CTA navigates the user to the Events listing. No booking cards are rendered.",
+          "testData": {}
+        },
+        {
+          "id": "BOOK_004",
+          "title": "Clicking 'Keep Booking' in the cancel modal preserves the Confirmed status",
+          "type": "negative",
+          "priority": "medium",
+          "preconditions": [
+            "User is logged in with manish123@gmail.com / Manish9@@",
+            "User is on the My Bookings page",
+            "At least one Confirmed booking card with a 'Cancel' button is present"
+          ],
+          "steps": [
+            "1. On My Bookings, click the 'Cancel' button on the first Confirmed booking.",
+            "2. When the confirmation modal opens, click 'Keep Booking' (or 'Close').",
+            "3. Confirm the modal closes without a success toast.",
+            "4. Re-inspect the card's status badge."
+          ],
+          "expectedResult": "The modal closes, no success toast is shown, the card's status badge remains 'Confirmed', and no booking state changes occur. The user can re-open the modal by clicking Cancel again.",
+          "testData": {}
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Live UI confirmed via Playwright MCP snapshot on 2026-06-24: login page renders 'Sign in to EventHub' heading, Email + Password fields with placeholders 'you@email.com' and '••••••', a 'Sign In' button, and a 'Register' link pointing to /register. No 'Forgot password' link, 'Remember me' checkbox, or social-login buttons were observed — those test areas were skipped.",
+    "Feature coverage was derived from the live snapshot and the existing POM in src/tests/locators/test.locator.ts (email, password, sign-in, error message, event tab, add-new-event, event form fields, event-card listing, bookings nav, booking cards, status badges, cancel modal, empty state).",
+    "Demo credentials used for positive paths: manish123@gmail.com / Manish9@@ (as hardcoded in src/tests/steps/test.ts and CLAUDE.md).",
+    "Browser-driven actions for several flows (filling forms, clicking) could not be executed in this session due to MCP permission constraints — selectors and step wording are based on the live DOM snapshot and the existing POM rather than end-to-end runs."
+  ]
+}
