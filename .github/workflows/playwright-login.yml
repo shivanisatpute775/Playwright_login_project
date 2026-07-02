@@ -42,7 +42,7 @@ jobs:
         run: npx playwright --version
 
       - name: Run Cucumber Tests
-        run: npm test
+        run: git initnpx cucumber-js
 
       - name: Upload Playwright Report
         if: always()
