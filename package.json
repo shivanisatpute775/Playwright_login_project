@@ -1,12 +1,16 @@
 {
   "name": "playwright",
   "version": "1.0.0",
+  "description": "",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "test": "cucumber-js",
+    "report": "node reports/report.js",
+    "test:report": "cucumber-js --format json:reports/cucumber-report.json && npm run report"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
   "devDependencies": {
     "@cucumber/cucumber": "^13.0.0",
     "@playwright/test": "^1.60.0",
