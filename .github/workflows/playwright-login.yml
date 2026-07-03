@@ -44,26 +44,29 @@ jobs:
       - name: Run Cucumber Tests
         run: npx cucumber-js
 
-      - name: Upload Test Report Artifact
-        uses: actions/upload-artifact@v4
-        with:
-         name: test-execution-report
-         path: coverage/     # Path to your framework's generated report directory
-         retention-days: 7
-
-      - name: Upload Test Results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
+      - name: Upload Test Reports
+  if: always()
+  uses: actions/upload-artifact@v4
+  with:
+    name: automation-reports
+    path: |
+      playwright-report/
+      reports/
+    if-no-files-found: warn
+      
+    name: Upload Test Results
+  if: always()
+  uses: actions/upload-artifact@v4
+  with:
           name: test-results
           path: test-results
           if-no-files-found: ignore
           retention-days: 7
 
-      - name: Upload Screenshots
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
+      name: Upload Screenshots
+  if: failure()
+  uses: actions/upload-artifact@v4
+  with:
           name: screenshots
           path: |
             screenshots
