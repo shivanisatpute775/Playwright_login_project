@@ -44,14 +44,12 @@ jobs:
       - name: Run Cucumber Tests
         run: npx cucumber-js
 
-      - name: Upload Playwright Report
-        if: always()
+      - name: Upload Test Report Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
-          path: playwright-report
-          if-no-files-found: ignore
-          retention-days: 7
+         name: test-execution-report
+         path: coverage/     # Path to your framework's generated report directory
+         retention-days: 7
 
       - name: Upload Test Results
         if: always()
