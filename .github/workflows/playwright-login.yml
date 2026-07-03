@@ -30,44 +30,28 @@ jobs:
           cache: npm
 
       - name: Install Dependencies
-        run: npm install
+        run: npm ci
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
-      - name: Create Reports Folder
-        run: mkdir -p reports
-
-      - name: Run Cucumber Tests
+      - name: Run Playwright Tests
         run: npx cucumber-js
-        continue-on-error: true
 
-      - name: List Report Files
-        if: always()
-        run: |
-          echo "Generated report files:"
-          ls -R reports || true
+       --require-module ts-node/register \
+       --require "tests/step-definitions/**/*.ts" \
+       --require "tests/support/**/*.ts" \
+       tests/features/security-validation.feature \
+       --format progress \
+       --format html:reports/cucumber-report.html
 
-      - name: Upload JSON Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cucumber-html-report
-          path: reports/cucumber-report.html
-          if-no-files-found: warn
 
-      - name: Upload Playwright Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: playwright-report/
-          if-no-files-found: ignore
-
-      - name: Upload Screenshots
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: screenshots
-          path: screenshots/
-          if-no-files-found: ignore
+      - name: Upload Cucumber Report
+    if: always()
+    uses: actions/upload-artifact@v4
+    with:
+          name: cucumber-report
+          path: report.html
+          
+      
+      
