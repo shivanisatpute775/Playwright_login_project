@@ -52,8 +52,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: cucumber-json-report
-          path: reports/cucumber-report.json
+          name: cucumber-html-report
+          path: reports/cucumber-report.html
           if-no-files-found: warn
 
       - name: Upload Playwright Report
