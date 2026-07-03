@@ -36,22 +36,19 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run Playwright Tests
-        run: npx cucumber-js
-
-       --require-module ts-node/register \
-       --require "tests/step-definitions/**/*.ts" \
-       --require "tests/support/**/*.ts" \
-       tests/features/security-validation.feature \
-       --format progress \
-       --format html:reports/cucumber-report.html
-
+        run: |
+          npx cucumber-js \
+            --require-module ts-node/register \
+            --require "tests/step-definitions/**/*.ts" \
+            --require "tests/support/**/*.ts" \
+            tests/features/security-validation.feature \
+            --format progress \
+            --format html:reports/cucumber-report.html
 
       - name: Upload Cucumber Report
-    if: always()
-    uses: actions/upload-artifact@v4
-    with:
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
           name: cucumber-report
-          path: report.html
-          
-      
-      
+          path: reports/
+          if-no-files-found: warn
